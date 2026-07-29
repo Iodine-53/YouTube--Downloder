@@ -55,7 +55,7 @@ def download_video(url, height, session_dir, progress_container):
         "impersonate": None,
         "extractor_args": {
             "youtube": {
-                "player_client": ["default", "-web_safari"],
+                "player_client": ["android", "web"],
                 "player_js_version": ["actual"]
             }
         },
@@ -65,7 +65,16 @@ def download_video(url, height, session_dir, progress_container):
             info = ydl.extract_info(url, download=True)
             filepath = ydl.prepare_filename(info).rsplit(".", 1)[0] + ".mp4"
     except Exception as e:
-        raise DownloadError(f"Download failed: {str(e)[:200]}")
+        if "403" in str(e):
+            opts["extractor_args"]["youtube"]["player_client"] = ["ios", "android_sdkless"]
+            try:
+                with yt_dlp.YoutubeDL(opts) as ydl:
+                    info = ydl.extract_info(url, download=True)
+                    filepath = ydl.prepare_filename(info).rsplit(".", 1)[0] + ".mp4"
+            except Exception as e2:
+                raise DownloadError(f"Download failed: {str(e2)[:200]}")
+        else:
+            raise DownloadError(f"Download failed: {str(e)[:200]}")
     return _read_and_cleanup(filepath)
 
 
@@ -87,7 +96,7 @@ def download_audio(url, session_dir, progress_container):
         "impersonate": None,
         "extractor_args": {
             "youtube": {
-                "player_client": ["default", "-web_safari"],
+                "player_client": ["android", "web"],
                 "player_js_version": ["actual"]
             }
         },
@@ -97,5 +106,14 @@ def download_audio(url, session_dir, progress_container):
             info = ydl.extract_info(url, download=True)
             filepath = ydl.prepare_filename(info).rsplit(".", 1)[0] + ".mp3"
     except Exception as e:
-        raise DownloadError(f"Download failed: {str(e)[:200]}")
+        if "403" in str(e):
+            opts["extractor_args"]["youtube"]["player_client"] = ["ios", "android_sdkless"]
+            try:
+                with yt_dlp.YoutubeDL(opts) as ydl:
+                    info = ydl.extract_info(url, download=True)
+                    filepath = ydl.prepare_filename(info).rsplit(".", 1)[0] + ".mp3"
+            except Exception as e2:
+                raise DownloadError(f"Download failed: {str(e2)[:200]}")
+        else:
+            raise DownloadError(f"Download failed: {str(e)[:200]}")
     return _read_and_cleanup(filepath)
