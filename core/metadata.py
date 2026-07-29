@@ -12,6 +12,11 @@ def fetch_video_info(url):
         "no_warnings": True,
         "extract_flat": False,
         "skip_download": True,
+        "extractor_args": {
+            "youtube": {
+                "player_client": ["default", "-android_sdkless"]
+            }
+        },
     }
     try:
         with yt_dlp.YoutubeDL(opts) as ydl:
