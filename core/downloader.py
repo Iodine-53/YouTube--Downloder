@@ -52,9 +52,10 @@ def download_video(url, height, session_dir, progress_container):
         "no_warnings": True,
         "progress_hooks": [_progress_hook_factory(progress_container)],
         "socket_timeout": 30,
+        "impersonate": True,
         "extractor_args": {
             "youtube": {
-                "player_client": ["default", "web_safari"],
+                "player_client": ["default", "-web_safari"],
                 "player_js_version": ["actual"]
             }
         },
@@ -83,9 +84,10 @@ def download_audio(url, session_dir, progress_container):
         "no_warnings": True,
         "progress_hooks": [_progress_hook_factory(progress_container)],
         "socket_timeout": 30,
+        "impersonate": True,
         "extractor_args": {
             "youtube": {
-                "player_client": ["default", "web_safari"],
+                "player_client": ["default", "-web_safari"],
                 "player_js_version": ["actual"]
             }
         },
