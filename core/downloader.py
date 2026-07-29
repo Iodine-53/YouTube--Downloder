@@ -41,6 +41,31 @@ def _read_and_cleanup(filepath):
     return data
 
 
+def _try_clients(url, opts_template, session_dir, is_audio, progress_container):
+    clients_to_try = [["android"], ["web"], ["mweb"], ["ios"]]
+    last_error = None
+    for client_list in clients_to_try:
+        opts = {**opts_template, "extractor_args": {
+            "youtube": {
+                "player_client": client_list,
+                "player_js_version": ["actual"]
+            }
+        }}
+        try:
+            with yt_dlp.YoutubeDL(opts) as ydl:
+                info = ydl.extract_info(url, download=True)
+                ext = ".mp3" if is_audio else ".mp4"
+                filepath = ydl.prepare_filename(info).rsplit(".", 1)[0] + ext
+            print(f"[yt-dlp] download succeeded with client: {client_list}")
+            return filepath
+        except Exception as e:
+            if "403" in str(e):
+                last_error = e
+                continue
+            raise DownloadError(f"Download failed: {str(e)[:200]}")
+    raise DownloadError("This video's protection couldn't be bypassed automatically — try a different video")
+
+
 def download_video(url, height, session_dir, progress_container):
     _check_ffmpeg()
     outtmpl = os.path.join(session_dir, "%(title)s.%(ext)s")
@@ -53,28 +78,8 @@ def download_video(url, height, session_dir, progress_container):
         "progress_hooks": [_progress_hook_factory(progress_container)],
         "socket_timeout": 30,
         "impersonate": None,
-        "extractor_args": {
-            "youtube": {
-                "player_client": ["android", "web"],
-                "player_js_version": ["actual"]
-            }
-        },
     }
-    try:
-        with yt_dlp.YoutubeDL(opts) as ydl:
-            info = ydl.extract_info(url, download=True)
-            filepath = ydl.prepare_filename(info).rsplit(".", 1)[0] + ".mp4"
-    except Exception as e:
-        if "403" in str(e):
-            opts["extractor_args"]["youtube"]["player_client"] = ["ios", "android_sdkless"]
-            try:
-                with yt_dlp.YoutubeDL(opts) as ydl:
-                    info = ydl.extract_info(url, download=True)
-                    filepath = ydl.prepare_filename(info).rsplit(".", 1)[0] + ".mp4"
-            except Exception as e2:
-                raise DownloadError("This video's protection couldn't be bypassed automatically — try a different video")
-        else:
-            raise DownloadError(f"Download failed: {str(e)[:200]}")
+    filepath = _try_clients(url, opts, session_dir, is_audio=False, progress_container=progress_container)
     return _read_and_cleanup(filepath)
 
 
@@ -94,26 +99,6 @@ def download_audio(url, session_dir, progress_container):
         "progress_hooks": [_progress_hook_factory(progress_container)],
         "socket_timeout": 30,
         "impersonate": None,
-        "extractor_args": {
-            "youtube": {
-                "player_client": ["android", "web"],
-                "player_js_version": ["actual"]
-            }
-        },
     }
-    try:
-        with yt_dlp.YoutubeDL(opts) as ydl:
-            info = ydl.extract_info(url, download=True)
-            filepath = ydl.prepare_filename(info).rsplit(".", 1)[0] + ".mp3"
-    except Exception as e:
-        if "403" in str(e):
-            opts["extractor_args"]["youtube"]["player_client"] = ["ios", "android_sdkless"]
-            try:
-                with yt_dlp.YoutubeDL(opts) as ydl:
-                    info = ydl.extract_info(url, download=True)
-                    filepath = ydl.prepare_filename(info).rsplit(".", 1)[0] + ".mp3"
-            except Exception as e2:
-                raise DownloadError("This video's protection couldn't be bypassed automatically — try a different video")
-        else:
-            raise DownloadError(f"Download failed: {str(e)[:200]}")
+    filepath = _try_clients(url, opts, session_dir, is_audio=True, progress_container=progress_container)
     return _read_and_cleanup(filepath)
