@@ -14,7 +14,8 @@ def fetch_video_info(url):
         "skip_download": True,
         "extractor_args": {
             "youtube": {
-                "player_client": ["default", "-android_sdkless"]
+                "player_client": ["default", "web_safari"],
+                "player_js_version": ["actual"]
             }
         },
     }

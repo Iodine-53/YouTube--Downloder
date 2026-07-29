@@ -54,7 +54,8 @@ def download_video(url, height, session_dir, progress_container):
         "socket_timeout": 30,
         "extractor_args": {
             "youtube": {
-                "player_client": ["default", "-android_sdkless"]
+                "player_client": ["default", "web_safari"],
+                "player_js_version": ["actual"]
             }
         },
     }
@@ -84,7 +85,8 @@ def download_audio(url, session_dir, progress_container):
         "socket_timeout": 30,
         "extractor_args": {
             "youtube": {
-                "player_client": ["default", "-android_sdkless"]
+                "player_client": ["default", "web_safari"],
+                "player_js_version": ["actual"]
             }
         },
     }
