@@ -12,7 +12,7 @@ def fetch_video_info(url):
         "no_warnings": True,
         "extract_flat": False,
         "skip_download": True,
-        "impersonate": "chrome",
+        "impersonate": None,
         "extractor_args": {
             "youtube": {
                 "player_client": ["default", "-web_safari"],
